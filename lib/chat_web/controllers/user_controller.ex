@@ -4,18 +4,22 @@ defmodule ChatWeb.UserController do
 
   def index(conn, _params) do
     changeset = User.changeset(%User{}, %{})
-    render conn, "index.html", changeset: changeset
+    user = get_session(conn, :user_id) |> User.find
+
+    render conn, "index.html", changeset: changeset, user: user
   end
 
   def create(conn, %{"user" => user_params}) do
     changeset = User.changeset(%User{}, user_params)
     case Repo.insert(changeset) do
-      {:ok, _} ->
+      {:ok, user} ->
         conn
         |> put_flash(:info, "User created successfully.")
+        |> put_session(:user_id, user.id)
         |> redirect(to: user_path(conn, :index))
       {:error, _} ->
         render conn, "index.html", changeset: changeset
     end
+
   end
 end
